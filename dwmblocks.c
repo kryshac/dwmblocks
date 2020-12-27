@@ -68,19 +68,29 @@ void getcmd(const Block *block, char *output)
 		output[0] = block->signal;
 		output++;
 	}
-	strcpy(output, block->icon);
+  if (block == &blocks[0])
+    strcat(output, startdelim);
+	strcat(output, block->icon);
 	char *cmd = block->command;
 	FILE *cmdf = popen(cmd,"r");
 	if (!cmdf)
 		return;
-	char c;
 	int i = strlen(block->icon);
-	fgets(output+i, CMDLENGTH-(strlen(delim)+1), cmdf);
+  if (block == &blocks[0])
+    i += strlen(startdelim);
+	fgets(output+i, CMDLENGTH-((block == &blocks[LENGTH(blocks) - 1] ? strlen(enddelim) : strlen(delim))-1), cmdf);
 	remove_all(output, '\n');
 	i = strlen(output);
-    if ((i > 0 && block != &blocks[LENGTH(blocks) - 1]))
-        strcat(output, delim);
+  if (i > 0 && block != &blocks[LENGTH(blocks) - 1])
+  {
+    strcat(output, delim);
     i+=strlen(delim);
+  }
+  if (block == &blocks[LENGTH(blocks) - 1])
+  {
+    strcat(output, enddelim);
+    i+=strlen(enddelim);
+  }
 	output[i++] = '\0';
 	pclose(cmdf);
 }
